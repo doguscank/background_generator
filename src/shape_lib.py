@@ -2,6 +2,13 @@ import cv2
 import numpy as np
 import random
 
+"""
+
+Create shape classes
+Create creator class
+
+"""
+
 def random_direction():
 	directions = ['v', 'h', 'vr', 'hr']
 	return directions[random.randint(0, 3)]
