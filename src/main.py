@@ -21,15 +21,15 @@ cv2.imshow('bg gradient', white_bg)
 cv2.waitKey(0)
 """
 #square = sl.gradient_square(150, (100, 100, 100), (255, 0, 255), direction = 'v')
-
+"""
 while True:
 	try:
 		square = sl.create_sqaures_background(500, 20, (255, 255, 255), (255, 255, 0), random_directions = True, percentage = 0.85)
 	except:
 		continue
 	break
-
-#square = sl.create_sqaures_background(500, 25, (255, 255, 255), (255, 255, 0), random_directions = True)
+"""
+square = sl.create_sqaures_background(500, 50, (180, 105, 255), (255, 255, 255), random_directions = True)
 
 cv2.imshow('bg gradient', square)
 cv2.waitKey(0)

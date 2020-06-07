@@ -34,20 +34,22 @@ def gradient_square(l, start_color, end_color, direction = 'h'):
 			s[i] = (SB + (EB - SB) * i / float(l), SG + (EG - SG) * i  / float(l), SR + (ER - SR) * i  / float(l))
 			#print((SB + (EB - SB) * i / float(l), SG + (EG - SG) * i  / float(l), SR + (ER - SR) * i  / float(l)))
 	return s
-"""
-def create_sqaures_background(max_l, num_squares, first_color, second_color, direction = 'h', random_directions = False, percentage = 0.9):
+
+#Main square edge length, number of squares to be drawn, gradient start, gradient end, direction of gradient,
+#random gradient directions, max square edge multiplier, put squares from bigger to smaller into the frame
+def create_sqaures_background(max_l, num_squares, first_color, second_color, direction = 'h', random_directions = False, percentage = 0.9, sort_squares = True):
 	if random_directions:
 		direction = random_direction()
 
-	percentage = min(0.99, percentage)
+	percentage = min(0.9, percentage)
 
 	if 'r' in direction:
-		print("before: {} {}".format(first_color, second_color))
+		#print("before: {} {}".format(first_color, second_color))
 		temp = first_color
 		first_color = second_color
 		second_color = temp
 		direction = direction[0]
-		print("after: {} {}".format(first_color, second_color))
+		#print("after: {} {}".format(first_color, second_color))
 
 	main_square = gradient_square(max_l, first_color, second_color, direction)
 	squares = list()
@@ -67,18 +69,18 @@ def create_sqaures_background(max_l, num_squares, first_color, second_color, dir
 		l = int(max_l * random.uniform(0, percentage))
 		new_square = gradient_square(l, first_color, second_color, direction)
 
-		rx = min(int(max_l * random.uniform(0, percentage)), max_l - l - 5)
-		ry = min(int(max_l * random.uniform(0, percentage)), max_l - l - 5)
-		print(rx, ry, l)
-		print(int(max_l / 2) - rx, int(max_l / 2) - rx + l, int(max_l / 2) - ry, int(max_l / 2) - ry + l)
-		_ = input()
+		rx = int((max_l - l) * random.uniform(0, percentage)) #Random X point of center of the new square
+		ry = int((max_l - l) * random.uniform(0, percentage)) #Random Y point of center of the new square
 
-		squares.append([l, new_square, int(max_l / 2) - rx, int(max_l / 2) - rx + l, int(max_l / 2) - ry, int(max_l / 2) - ry + l])
+		#print(l, rx, ry, rx + l, ry + l)
+		#_ = input()
 
-	squares = sorted(squares, key = lambda item: item[0], reverse = True)
-	
+		squares.append([l, rx, ry, new_square])
+
+	if sort_squares:
+		squares = sorted(squares, key = lambda square: square[0], reverse = True)
+
 	for s in squares:
-		main_square[s[2]: s[3], s[4]: s[5]] = s[1]
+		main_square[s[1]: s[1] + s[0], s[2]: s[2] + s[0]] = s[3]
 
 	return main_square
-"""
