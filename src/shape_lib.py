@@ -6,6 +6,53 @@ def random_direction():
 	directions = ['v', 'h', 'vr', 'hr']
 	return directions[random.randint(0, 3)]
 
+class Creator():
+	def __init__(self, debug = False):
+		self.debug = debug
+
+	#Main square edge length, number of squares to be drawn, gradient start, gradient end, direction of gradient,
+	#random gradient directions, max square edge multiplier, put squares from bigger to smaller into the frame
+	def create_squares_background(self, max_l, num_squares, first_color, second_color, direction = 'h', random_directions = False,
+	percentage = 0.9, sort_squares = True):
+		square_creator = Square(max_l, first_color, second_color, direction, random_directions)
+		main_square = square_creator.create_square(max_l)
+
+		percentage = min(0.9, percentage)
+
+		squares = list()
+
+		for i in range(num_squares - 1):
+			l = int(max_l * random.uniform(0, percentage))
+			new_square = square_creator.create_square(l)
+
+			rx = int((max_l - l) * random.uniform(0, percentage)) #Random X point of center of the new square
+			ry = int((max_l - l) * random.uniform(0, percentage)) #Random Y point of center of the new square
+			
+			if self.debug:		
+				print(l, rx, ry, rx + l, ry + l)
+
+			squares.append([l, rx, ry, new_square])
+
+		if sort_squares:
+			squares = sorted(squares, key = lambda square: square[0], reverse = True)
+
+		for s in squares:
+			main_square[s[1]: s[1] + s[0], s[2]: s[2] + s[0]] = s[3]
+
+		return main_square
+
+	def create_triangles_background(self):
+		square_creator = Square(500, (0, 0, 255))
+		main_square = square_creator.create_square()
+
+		points = [(0, 499), (0, 0), (499, 499), (499, 0)]
+
+		for i in range(10):
+			x, y = random.randint(0, 499), random.randint(0, 499)
+			points.append((x, y))
+
+		
+
 class Square():
 	def __init__(self, l, start_color = (255, 255, 255), end_color = None, direction = 'h', random_directions = False, debug = False):
 		self.l = l
@@ -90,37 +137,11 @@ class Square():
 
 		return self.l
 
-class Creator():
-	def __init__(self, debug = False):
-		self.debug = debug
+class Triangle():
+	def __init__(self, points):
+		self.points = points
+		self.w = max([p[0] for p in points]) - min([p[0] for p in points])
+		self.l = max([p[1] for p in points]) - min([p[1] for p in points])
 
-	#Main square edge length, number of squares to be drawn, gradient start, gradient end, direction of gradient,
-	#random gradient directions, max square edge multiplier, put squares from bigger to smaller into the frame
-	def create_squares_background(self, max_l, num_squares, first_color, second_color, direction = 'h', random_directions = False,
-	percentage = 0.9, sort_squares = True):
-		square_creator = Square(max_l, first_color, second_color, direction, random_directions)
-
-		percentage = min(0.9, percentage)
-
-		main_square = square_creator.create_square(max_l)
-		squares = list()
-
-		for i in range(num_squares - 1):
-			l = int(max_l * random.uniform(0, percentage))
-			new_square = square_creator.create_square(l)
-
-			rx = int((max_l - l) * random.uniform(0, percentage)) #Random X point of center of the new square
-			ry = int((max_l - l) * random.uniform(0, percentage)) #Random Y point of center of the new square
-			
-			if self.debug:		
-				print(l, rx, ry, rx + l, ry + l)
-
-			squares.append([l, rx, ry, new_square])
-
-		if sort_squares:
-			squares = sorted(squares, key = lambda square: square[0], reverse = True)
-
-		for s in squares:
-			main_square[s[1]: s[1] + s[0], s[2]: s[2] + s[0]] = s[3]
-
-		return main_square
+	def create_mask(self):
+		mask_base = np.full((self.w, self.l, 3), (0, 0, 0))
