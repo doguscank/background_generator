@@ -2,7 +2,11 @@ import cv2
 import numpy as np
 import shape_lib as sl
 
-square = sl.create_sqaures_background(500, 50, (180, 105, 255), (255, 255, 255), random_directions = True)
+sc = sl.Square(500, (255, 0, 0), (255, 255, 255), random_directions = True, debug = True)
+square = sc.create_square()
 
-cv2.imshow('bg gradient', square)
+bg_creator = sl.Creator()
+bg = bg_creator.create_squares_background(500, 400, (255, 0, 0), (255, 255, 255), random_directions = True)
+
+cv2.imshow('bg gradient', bg)
 cv2.waitKey(0)
