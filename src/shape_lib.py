@@ -41,17 +41,9 @@ class Creator():
 
 		return main_square
 
-	def create_triangles_background(self):
-		square_creator = Square(500, (0, 0, 255))
+	def create_triangles_background(self, l):
+		square_creator = Square(l, (0, 0, 255))
 		main_square = square_creator.create_square()
-
-		points = [(0, 499), (0, 0), (499, 499), (499, 0)]
-
-		for i in range(10):
-			x, y = random.randint(0, 499), random.randint(0, 499)
-			points.append((x, y))
-
-		
 
 class Square():
 	def __init__(self, l, start_color = (255, 255, 255), end_color = None, direction = 'h', random_directions = False, debug = False):
@@ -136,6 +128,43 @@ class Square():
 			print("Invalid length value given! New value is 1px.")
 
 		return self.l
+
+	#Create n points for triangles
+	def create_rnd_points(self, n, corner_threshold = 10):
+		points = list()
+
+		for i in range(n):
+			#Get random X and Y point
+			rx = random.randint(corner_threshold - 1, self.l - corner_threshold - 1)
+			ry = random.randint(corner_threshold - 1, self.l - corner_threshold - 1)
+
+			points.append((rx, ry))
+
+		return points
+
+	def triangulate(self, n = 10, gradient = False):
+		points = self.create_rnd_points(n)
+		points.extend([(1, 1), (1, self.l - 2), (self.l - 2, self.l - 2), (self.l - 2, 1)])
+		
+		subdiv = cv2.Subdiv2D((0, 0, self.l - 1, self.l - 1))
+
+		for p in points:
+			subdiv.insert(p)
+
+		triangles = subdiv.getTriangleList()
+		triangle_list = list()
+		
+		for t in triangles:
+			pts = np.array([(t[0], t[1]), (t[2], t[3]), (t[4], t[5])], np.int32)
+			pts = pts.reshape((-1, 1, 2))
+			#If gradient is required, 
+			if gradient:
+				triangle_list.append(Triangle(pts[0]))
+			else:
+				rb, rg, rr = random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)
+				cv2.fillConvexPoly(self.square, pts, (rb, rg, rr))
+
+		return self.square
 
 class Triangle():
 	def __init__(self, points):
