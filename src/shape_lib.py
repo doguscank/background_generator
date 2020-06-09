@@ -41,10 +41,6 @@ class Creator():
 
 		return main_square
 
-	def create_triangles_background(self, l):
-		square_creator = Square(l, (0, 0, 255))
-		main_square = square_creator.create_square()
-
 class Square():
 	def __init__(self, l, start_color = (255, 255, 255), end_color = None, direction = 'h', random_directions = False, debug = False):
 		self.l = l
@@ -159,7 +155,10 @@ class Square():
 			pts = pts.reshape((-1, 1, 2))
 			#If gradient is required, 
 			if gradient:
-				triangle_list.append(Triangle(pts[0]))
+				new_t = Triangle(pts)
+				triangle_list.append(new_t)
+				#Create mask to get gradient triangle
+				mask = new_t.create_mask(self.l)
 			else:
 				rb, rg, rr = random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)
 				cv2.fillConvexPoly(self.square, pts, (rb, rg, rr))
@@ -167,10 +166,11 @@ class Square():
 		return self.square
 
 class Triangle():
-	def __init__(self, points):
-		self.points = points
-		self.w = max([p[0] for p in points]) - min([p[0] for p in points])
-		self.l = max([p[1] for p in points]) - min([p[1] for p in points])
+	def __init__(self, pts):
+		self.pts = pts
 
-	def create_mask(self):
-		mask_base = np.full((self.w, self.l, 3), (0, 0, 0))
+	def create_mask(self, l):
+		mask_base = np.full((l, l, 3), (0.0, 0.0, 0.0))
+		cv2.fillConvexPoly(mask_base, self.pts, (1.0, 1.0, 1.0))
+
+		return mask_base
