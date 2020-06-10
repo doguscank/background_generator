@@ -78,7 +78,7 @@ class Square():
 			b, g, r = self.start_color
 			self.square = np.full((self.l, self.l, 3), (b / 255.0, g / 255.0, r / 255.0))
 
-			return self.s
+			return self.square
 
 		#Create white colored main square
 		self.square = np.full((self.l, self.l, 3), (1.0, 1.0, 1.0))
@@ -138,7 +138,10 @@ class Square():
 
 		return points
 
-	def triangulate(self, n = 10, gradient = False):
+	def triangulate(self, n = 10, gradient = False, start_color = (0, 0, 0), end_color = (255, 255, 255)):
+		if gradient:
+			self.square = np.full((self.l, self.l, 3), (0.0, 0.0, 0.0))
+
 		points = self.create_rnd_points(n)
 		points.extend([(1, 1), (1, self.l - 2), (self.l - 2, self.l - 2), (self.l - 2, 1)])
 		
@@ -157,20 +160,67 @@ class Square():
 			if gradient:
 				new_t = Triangle(pts)
 				triangle_list.append(new_t)
-				#Create mask to get gradient triangle
-				mask = new_t.create_mask(self.l)
+				#Get masked gradient triangle
+				t_grad = new_t.create_gradient_triangle(self.l, start_color = self.get_random_color(start_color), end_color = self.get_random_color(end_color), random_directions = self.random_directions)
+				self.square = cv2.bitwise_or(self.square, t_grad)
 			else:
 				rb, rg, rr = random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)
 				cv2.fillConvexPoly(self.square, pts, (rb, rg, rr))
 
 		return self.square
 
+	def get_random_color(self, start = (0, 0, 0), end = (255, 255, 255)):
+		bs, gs, rs = start
+		be, ge, re = end
+
+		rb, rg, rr = random.randint(bs, be), random.randint(gs, ge), random.randint(rs, re)
+
+		return (rb, rg, rr)
+
 class Triangle():
 	def __init__(self, pts):
 		self.pts = pts
 
-	def create_mask(self, l):
-		mask_base = np.full((l, l, 3), (0.0, 0.0, 0.0))
-		cv2.fillConvexPoly(mask_base, self.pts, (1.0, 1.0, 1.0))
+	def create_mask(self, l, w = None):
+		if not w:
+			w = l
+		print(self.pts)
+		mask_base = np.full((l, w), 0.0, dtype = np.uint8)
+		cv2.fillConvexPoly(mask_base, self.pts, 1.0)
 
 		return mask_base
+
+	def create_gradient_triangle(self, l = None, start_color = (255, 255, 255), end_color = None, direction = 'h', random_directions = False, debug = False):
+		rect = cv2.boundingRect(self.pts)
+		x1, y1, x2, y2 = rect
+
+		if not l:
+			l = max(abs(y2 - y1), abs(x2 - x1))
+
+		mask = self.create_mask(l)
+
+		if random_directions:
+			new_direction = random_direction()
+
+			if 'r' in new_direction:
+				start_color, end_color = end_color, start_color
+
+			direction = new_direction[0]
+
+		sc = Square(l, start_color = start_color, end_color = end_color, direction = direction, random_directions = random_directions, debug = debug)
+		new_square = sc.create_square()
+		if debug:
+			cv2.imshow('mask', mask)
+			cv2.waitKey(0)
+
+			cv2.imshow('new_square', new_square)
+			cv2.waitKey(0)
+		
+		result = cv2.bitwise_and(new_square, new_square, mask = mask)
+		
+		if debug:
+			cv2.imshow('result', result)
+			cv2.waitKey(0)
+
+		return result
+		
